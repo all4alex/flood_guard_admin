@@ -45,7 +45,10 @@ dependencies:
   qr_flutter: ^4.1.0
   sliding_up_panel: ^2.0.0+1
   uuid: ^3.0.7
-  sms_advanced: ^1.1.0
+  flutter_spinkit: ^5.2.0
+  permission_handler: ^11.1.0
+  sms_advanced: 
+    path: sms_advanced-master
   
 
 dev_dependencies:

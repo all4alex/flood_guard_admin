@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flood_guard_admin/app/app_toast.dart';
 import 'package:flood_guard_admin/flood_alert_model.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:sms_advanced/sms_advanced.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -17,10 +19,41 @@ class _HomeScreenState extends State<HomeScreen> {
             FloodAlertModel.fromJson(snapshot.data()!),
         toFirestore: (movie, _) => movie.toJson(),
       );
+  final SmsQuery query = SmsQuery();
+  final String targetSender = '+639761215840';
+
+  @override
+  void initState() {
+    super.initState();
+    initSmsListener();
+  }
+
+  void initSmsListener() async {
+    SmsReceiver receiver = SmsReceiver();
+    receiver.onSmsReceived!.listen((SmsMessage msg) {
+      print(msg);
+      if (msg.address == targetSender) {
+        processMessage(msg.body!, msg.date!);
+      }
+    });
+  }
+
+  void processMessage(String body, DateTime dateTime) {
+    // Custom function to process message data
+    print('Message from $targetSender: $body, received at $dateTime');
+    // Add additional processing logic here
+    uploadFloodAlert(
+        floodAlertModel: FloodAlertModel(
+            id: '${dateTime.millisecondsSinceEpoch}',
+            title: 'Alert',
+            message: body,
+            timestamp: dateTime.millisecondsSinceEpoch,
+            location: 'Cagwait Surigao del Sur'));
+  }
 
   Future<void> uploadFloodAlert({required FloodAlertModel floodAlertModel}) {
     return floodAlertRef.add(floodAlertModel).then((value) {
-      print("User Added");
+      print("Uploaded...");
       // Navigator.pushReplacement(
       //     context,
       //     MaterialPageRoute(
@@ -39,72 +72,30 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: BackButton(color: Colors.white),
-        centerTitle: true,
-        title: Text(
-          'Flood Records',
-          style: TextStyle(color: Colors.white),
-        ),
         backgroundColor: Color(0xff1b2a33),
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: floodAlertRef.snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (snapshot.hasError) {
-            return Text('Something went wrong');
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Text("Loading");
-          }
-
-          return ListView(
-            children: snapshot.data!.docs.map((DocumentSnapshot document) {
-              FloodAlertModel item = document.data() as FloodAlertModel;
-              bool isAlert = false;
-              if (item.title != null) {
-                isAlert = item.title == 'ALERT';
-              }
-              return ListTile(
-                titleAlignment: ListTileTitleAlignment.top,
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailScreen(
-                          data: item,
-                        ),
-                      ));
-                },
-                leading: CircleAvatar(
-                  backgroundColor: Colors.red,
-                  child: isAlert
-                      ? Icon(
-                          Icons.warning_rounded,
-                          color: Colors.white,
-                        )
-                      : Icon(
-                          Icons.info,
-                          color: Colors.white,
-                        ),
-                ),
-                title: Text('${item.title}'),
-                subtitle: Text('${item.message}'),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                        '${convertToAgo(DateTime.fromMillisecondsSinceEpoch(item.timestamp ?? 0))}'),
-                    Text('${item.location}')
-                  ],
-                ),
-              );
-            }).toList(),
-          );
-        },
-      ),
-    );
+        body: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 50, right: 50),
+              child: Text(
+                'BROADCASTINGFLOOD NOTIFCATIONS FROM THE DEVICE.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            SpinKitWaveSpinner(
+              size: 300,
+              color: Colors.white60,
+              trackColor: Colors.white12,
+              waveColor: Colors.blue,
+            ),
+          ],
+        ));
   }
 }
 

@@ -17,15 +17,24 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -43,39 +52,11 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDnSrQx4Wkg096bvp2wyfRmAS_jcdNCJ6U',
-    appId: '1:856711818689:web:eeb7b1ac1a3fed49315340',
-    messagingSenderId: '856711818689',
-    projectId: 'floodguard-974ca',
-    authDomain: 'floodguard-974ca.firebaseapp.com',
-    storageBucket: 'floodguard-974ca.appspot.com',
-    measurementId: 'G-WSJZ3KVJV5',
-  );
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyA7NPnbfC2ebN_cBYWbZbaUOn7ASknIDuk',
-    appId: '1:856711818689:android:f9b280b35ba0c346315340',
+    appId: '1:856711818689:android:65164bae03f01bd3315340',
     messagingSenderId: '856711818689',
     projectId: 'floodguard-974ca',
     storageBucket: 'floodguard-974ca.appspot.com',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBFVFJS0AQCkcvsPB0R2N-J-8Tmnj_s-sM',
-    appId: '1:856711818689:ios:12db1c1ee46ed81b315340',
-    messagingSenderId: '856711818689',
-    projectId: 'floodguard-974ca',
-    storageBucket: 'floodguard-974ca.appspot.com',
-    iosBundleId: 'com.example.floodGuard',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBFVFJS0AQCkcvsPB0R2N-J-8Tmnj_s-sM',
-    appId: '1:856711818689:ios:9935be88b738c1a3315340',
-    messagingSenderId: '856711818689',
-    projectId: 'floodguard-974ca',
-    storageBucket: 'floodguard-974ca.appspot.com',
-    iosBundleId: 'com.example.floodGuard.RunnerTests',
   );
 }

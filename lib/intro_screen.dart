@@ -103,7 +103,7 @@ class _IntroScreenState extends State<IntroScreen> {
               ),
               child: Container(
                 alignment: Alignment.center,
-                width: 150,
+                width: 220,
                 height: 50,
                 child: Text(
                   'START BROADCAST',
