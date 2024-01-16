@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flood_guard_admin/app/app_toast.dart';
 import 'package:flood_guard_admin/flood_alert_model.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:intl/intl.dart';
 import 'package:sms_advanced/sms_advanced.dart';
+import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -20,7 +24,9 @@ class _HomeScreenState extends State<HomeScreen> {
         toFirestore: (movie, _) => movie.toJson(),
       );
   final SmsQuery query = SmsQuery();
-  final String targetSender = '+639761215840';
+  //Actual hardware device sim number
+  final String targetSender = '+639465011997';
+  final String testSender = '+639761215840';
 
   @override
   void initState() {
@@ -28,11 +34,39 @@ class _HomeScreenState extends State<HomeScreen> {
     initSmsListener();
   }
 
+  void sendPushNotifToFloodGuardApp(
+      {required String title, required String body}) async {
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization':
+          'key=AAAAx3gA7cE:APA91bHan4Z5bBbmxHR6ONIciOXECVTGS9NFhXF0JlCr6QTP97WjUH52-ovnYWkAAwAs5sL4_ncGX1vJZK173-JNHFfpFFkNptF1bxxFzD56jfxZ8A34KX8cIAKKAtuZE32gKX2x0nGG'
+    };
+    var request =
+        http.Request('POST', Uri.parse('https://fcm.googleapis.com/fcm/send'));
+    request.body = jsonEncode({
+      "to": "/topics/floodAlerts",
+      "notification": {
+        "title": title,
+        "body": body,
+        "mutable_content": true,
+        "sound": "Tri-tone"
+      }
+    });
+    request.headers.addAll(headers);
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+    } else {
+      print(response.reasonPhrase);
+    }
+  }
+
   void initSmsListener() async {
     SmsReceiver receiver = SmsReceiver();
     receiver.onSmsReceived!.listen((SmsMessage msg) {
       print(msg);
-      if (msg.address == targetSender) {
+      if (msg.address == targetSender || msg.address == testSender) {
         processMessage(msg.body!, msg.date!);
       }
     });
@@ -42,13 +76,22 @@ class _HomeScreenState extends State<HomeScreen> {
     // Custom function to process message data
     print('Message from $targetSender: $body, received at $dateTime');
     // Add additional processing logic here
+    String title = body.toLowerCase().contains('alert') ? 'Alert' : 'Info';
+    DateTime now = dateTime;
+    String formattedDate = DateFormat('h:mm a of MMM d, yyyy').format(now);
+    String place = 'Cagwait Surigao del Sur';
+    String message = body.toLowerCase().contains('alert')
+        ? 'Flood was detected at $place on $formattedDate'
+        : 'Flood Guard device was initiated at $place on $formattedDate';
+
     uploadFloodAlert(
         floodAlertModel: FloodAlertModel(
             id: '${dateTime.millisecondsSinceEpoch}',
-            title: 'Alert',
-            message: body,
+            title: title,
+            message: message,
             timestamp: dateTime.millisecondsSinceEpoch,
-            location: 'Cagwait Surigao del Sur'));
+            location: place));
+    sendPushNotifToFloodGuardApp(title: title, body: message);
   }
 
   Future<void> uploadFloodAlert({required FloodAlertModel floodAlertModel}) {
